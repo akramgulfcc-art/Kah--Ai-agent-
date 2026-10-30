@@ -1,0 +1,673 @@
+{
+  "nodes": [
+    {
+      "id": "start",
+      "type": "flow-node",
+      "position": {
+        "x": 400,
+        "y": 0
+      },
+      "data": {
+        "node_type": "start",
+        "config": {}
+      }
+    },
+    {
+      "id": "send_interactive_1761800001000",
+      "type": "flow-node",
+      "position": {
+        "x": 400,
+        "y": 200
+      },
+      "data": {
+        "node_type": "send_interactive",
+        "config": {
+          "interactive_type": "list",
+          "body_text": "Welcome to KAH Middle East Co. 👋\nAutomatic door solutions in partnership with GEZE, Germany.\n\nHow can we help you today? Please choose an option from the menu.",
+          "list_button_text": "Choose service",
+          "list_sections": [
+            {
+              "title": "KAH Services",
+              "rows": [
+                {
+                  "id": "fault",
+                  "title": "Report a door fault",
+                  "description": "Door not working, stuck, noisy or damaged"
+                },
+                {
+                  "id": "maintenance",
+                  "title": "Book maintenance / AMC",
+                  "description": "Preventive service or annual maintenance contract"
+                },
+                {
+                  "id": "quotation",
+                  "title": "New door quotation",
+                  "description": "New project, replacement or GEZE products"
+                },
+                {
+                  "id": "team",
+                  "title": "Talk to our team",
+                  "description": "Speak directly with a KAH team member"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "wait_for_response_1761800002000",
+      "type": "flow-node",
+      "position": {
+        "x": 400,
+        "y": 400
+      },
+      "data": {
+        "node_type": "wait_for_response",
+        "config": {
+          "save_response_to": "menu_choice"
+        }
+      }
+    },
+    {
+      "id": "decide_1761800003000",
+      "type": "flow-node",
+      "position": {
+        "x": 400,
+        "y": 600
+      },
+      "data": {
+        "node_type": "decide",
+        "config": {
+          "decision_type": "function",
+          "function_id": "KAH_ROUTE_MENU_FUNCTION_ID",
+          "conditions": [
+            {
+              "label": "request",
+              "description": "Customer chose fault, maintenance or quotation"
+            },
+            {
+              "label": "team",
+              "description": "Customer wants to talk to the team"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "send_text_1761800004000",
+      "type": "flow-node",
+      "position": {
+        "x": 900,
+        "y": 800
+      },
+      "data": {
+        "node_type": "send_text",
+        "config": {
+          "message": "Thank you. A KAH team member will reply to you here shortly during working hours.\nFor an urgent door breakdown, please choose \"Report a door fault\" from the menu next time so we can dispatch a technician faster.",
+          "delay_seconds": 0
+        }
+      }
+    },
+    {
+      "id": "handoff_1761800005000",
+      "type": "flow-node",
+      "position": {
+        "x": 900,
+        "y": 1000
+      },
+      "data": {
+        "node_type": "handoff",
+        "config": {}
+      }
+    },
+    {
+      "id": "send_text_1761800006000",
+      "type": "flow-node",
+      "position": {
+        "x": 400,
+        "y": 800
+      },
+      "data": {
+        "node_type": "send_text",
+        "config": {
+          "message": "Please send your full name and the company or building name.",
+          "delay_seconds": 0
+        }
+      }
+    },
+    {
+      "id": "wait_for_response_1761800007000",
+      "type": "flow-node",
+      "position": {
+        "x": 400,
+        "y": 1000
+      },
+      "data": {
+        "node_type": "wait_for_response",
+        "config": {
+          "save_response_to": "customer_name"
+        }
+      }
+    },
+    {
+      "id": "send_text_1761800008000",
+      "type": "flow-node",
+      "position": {
+        "x": 400,
+        "y": 1200
+      },
+      "data": {
+        "node_type": "send_text",
+        "config": {
+          "message": "Thank you. Please share the site location 📍\nYou can send your WhatsApp location, or type the city, area and building address.",
+          "delay_seconds": 0
+        }
+      }
+    },
+    {
+      "id": "wait_for_response_1761800009000",
+      "type": "flow-node",
+      "position": {
+        "x": 400,
+        "y": 1400
+      },
+      "data": {
+        "node_type": "wait_for_response",
+        "config": {
+          "save_response_to": "site_location"
+        }
+      }
+    },
+    {
+      "id": "decide_1761800010000",
+      "type": "flow-node",
+      "position": {
+        "x": 400,
+        "y": 1600
+      },
+      "data": {
+        "node_type": "decide",
+        "config": {
+          "decision_type": "function",
+          "function_id": "KAH_ROUTE_MENU_FUNCTION_ID",
+          "conditions": [
+            {
+              "label": "fault",
+              "description": "Door fault / breakdown"
+            },
+            {
+              "label": "maintenance",
+              "description": "Maintenance visit or AMC"
+            },
+            {
+              "label": "quotation",
+              "description": "New project or quotation"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "send_interactive_1761800011000",
+      "type": "flow-node",
+      "position": {
+        "x": 0,
+        "y": 1800
+      },
+      "data": {
+        "node_type": "send_interactive",
+        "config": {
+          "interactive_type": "list",
+          "body_text": "What type of door has the problem?",
+          "list_button_text": "Choose door type",
+          "list_sections": [
+            {
+              "title": "Door type",
+              "rows": [
+                {
+                  "id": "sliding",
+                  "title": "Sliding door"
+                },
+                {
+                  "id": "swing",
+                  "title": "Swing door"
+                },
+                {
+                  "id": "revolving",
+                  "title": "Revolving door"
+                },
+                {
+                  "id": "folding",
+                  "title": "Folding door"
+                },
+                {
+                  "id": "hermetic",
+                  "title": "Hermetic / hospital door"
+                },
+                {
+                  "id": "other",
+                  "title": "Other / not sure"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "wait_for_response_1761800012000",
+      "type": "flow-node",
+      "position": {
+        "x": 0,
+        "y": 2000
+      },
+      "data": {
+        "node_type": "wait_for_response",
+        "config": {
+          "save_response_to": "door_type"
+        }
+      }
+    },
+    {
+      "id": "send_interactive_1761800013000",
+      "type": "flow-node",
+      "position": {
+        "x": 0,
+        "y": 2200
+      },
+      "data": {
+        "node_type": "send_interactive",
+        "config": {
+          "interactive_type": "button",
+          "body_text": "What is the door condition now?",
+          "buttons": [
+            {
+              "id": "stuck_open",
+              "title": "Stuck open"
+            },
+            {
+              "id": "stuck_closed",
+              "title": "Stuck closed"
+            },
+            {
+              "id": "working_issue",
+              "title": "Working with issue"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "wait_for_response_1761800014000",
+      "type": "flow-node",
+      "position": {
+        "x": 0,
+        "y": 2400
+      },
+      "data": {
+        "node_type": "wait_for_response",
+        "config": {
+          "save_response_to": "door_condition"
+        }
+      }
+    },
+    {
+      "id": "send_text_1761800015000",
+      "type": "flow-node",
+      "position": {
+        "x": 0,
+        "y": 2600
+      },
+      "data": {
+        "node_type": "send_text",
+        "config": {
+          "message": "Please describe the problem in a few words.\nIf possible, also send a photo or short video of the door and the operator unit. This helps our technician bring the right spare parts.",
+          "delay_seconds": 0
+        }
+      }
+    },
+    {
+      "id": "wait_for_response_1761800016000",
+      "type": "flow-node",
+      "position": {
+        "x": 0,
+        "y": 2800
+      },
+      "data": {
+        "node_type": "wait_for_response",
+        "config": {
+          "save_response_to": "problem_details"
+        }
+      }
+    },
+    {
+      "id": "send_interactive_1761800017000",
+      "type": "flow-node",
+      "position": {
+        "x": 400,
+        "y": 1800
+      },
+      "data": {
+        "node_type": "send_interactive",
+        "config": {
+          "interactive_type": "button",
+          "body_text": "Do you have an Annual Maintenance Contract (AMC) with KAH?",
+          "buttons": [
+            {
+              "id": "amc_yes",
+              "title": "Yes, we have AMC"
+            },
+            {
+              "id": "amc_no",
+              "title": "No AMC"
+            },
+            {
+              "id": "amc_unsure",
+              "title": "Not sure"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "wait_for_response_1761800018000",
+      "type": "flow-node",
+      "position": {
+        "x": 400,
+        "y": 2000
+      },
+      "data": {
+        "node_type": "wait_for_response",
+        "config": {
+          "save_response_to": "amc_status"
+        }
+      }
+    },
+    {
+      "id": "send_text_1761800019000",
+      "type": "flow-node",
+      "position": {
+        "x": 400,
+        "y": 2200
+      },
+      "data": {
+        "node_type": "send_text",
+        "config": {
+          "message": "How many automatic doors are at this site, and what is your preferred visit date and time?",
+          "delay_seconds": 0
+        }
+      }
+    },
+    {
+      "id": "wait_for_response_1761800020000",
+      "type": "flow-node",
+      "position": {
+        "x": 400,
+        "y": 2400
+      },
+      "data": {
+        "node_type": "wait_for_response",
+        "config": {
+          "save_response_to": "maintenance_details"
+        }
+      }
+    },
+    {
+      "id": "send_text_1761800021000",
+      "type": "flow-node",
+      "position": {
+        "x": 800,
+        "y": 1800
+      },
+      "data": {
+        "node_type": "send_text",
+        "config": {
+          "message": "Please share your project details:\n• Project name\n• Number of doors\n• Door type (sliding, swing, revolving, etc.)\n• Expected installation date\n\nYou can also send drawings, BOQ or photos.",
+          "delay_seconds": 0
+        }
+      }
+    },
+    {
+      "id": "wait_for_response_1761800022000",
+      "type": "flow-node",
+      "position": {
+        "x": 800,
+        "y": 2000
+      },
+      "data": {
+        "node_type": "wait_for_response",
+        "config": {
+          "save_response_to": "project_details"
+        }
+      }
+    },
+    {
+      "id": "function_1761800023000",
+      "type": "flow-node",
+      "position": {
+        "x": 400,
+        "y": 3000
+      },
+      "data": {
+        "node_type": "function",
+        "config": {
+          "function_id": "KAH_CREATE_TICKET_FUNCTION_ID",
+          "save_response_to": "ticket_result"
+        }
+      }
+    },
+    {
+      "id": "send_text_1761800024000",
+      "type": "flow-node",
+      "position": {
+        "x": 400,
+        "y": 3200
+      },
+      "data": {
+        "node_type": "send_text",
+        "config": {
+          "message": "{{vars.confirm_message}}",
+          "delay_seconds": 0
+        }
+      }
+    },
+    {
+      "id": "send_text_1761800025000",
+      "type": "flow-node",
+      "position": {
+        "x": 400,
+        "y": 3400
+      },
+      "data": {
+        "node_type": "send_text",
+        "config": {
+          "message": "{{vars.team_alert}}",
+          "to_phone_number": "{{vars.team_phone}}",
+          "delay_seconds": 0
+        }
+      }
+    },
+    {
+      "id": "emit_event_1761800026000",
+      "type": "flow-node",
+      "position": {
+        "x": 400,
+        "y": 3600
+      },
+      "data": {
+        "node_type": "emit_event",
+        "config": {
+          "event_name": "service.request_created",
+          "properties": {
+            "ticket_no": "{{vars.ticket_no}}",
+            "request_type": "{{vars.request_type}}",
+            "priority": "{{vars.priority}}",
+            "customer_name": "{{vars.customer_name_text}}",
+            "customer_phone": "{{context.phone_number}}",
+            "site_location": "{{vars.site_location_text}}"
+          }
+        }
+      }
+    },
+    {
+      "id": "handoff_1761800027000",
+      "type": "flow-node",
+      "position": {
+        "x": 400,
+        "y": 3800
+      },
+      "data": {
+        "node_type": "handoff",
+        "config": {}
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "start",
+      "target": "send_interactive_1761800001000",
+      "label": "next"
+    },
+    {
+      "source": "send_interactive_1761800001000",
+      "target": "wait_for_response_1761800002000",
+      "label": "next"
+    },
+    {
+      "source": "wait_for_response_1761800002000",
+      "target": "decide_1761800003000",
+      "label": "next"
+    },
+    {
+      "source": "decide_1761800003000",
+      "target": "send_text_1761800004000",
+      "label": "team"
+    },
+    {
+      "source": "send_text_1761800004000",
+      "target": "handoff_1761800005000",
+      "label": "next"
+    },
+    {
+      "source": "decide_1761800003000",
+      "target": "send_text_1761800006000",
+      "label": "request"
+    },
+    {
+      "source": "send_text_1761800006000",
+      "target": "wait_for_response_1761800007000",
+      "label": "next"
+    },
+    {
+      "source": "wait_for_response_1761800007000",
+      "target": "send_text_1761800008000",
+      "label": "next"
+    },
+    {
+      "source": "send_text_1761800008000",
+      "target": "wait_for_response_1761800009000",
+      "label": "next"
+    },
+    {
+      "source": "wait_for_response_1761800009000",
+      "target": "decide_1761800010000",
+      "label": "next"
+    },
+    {
+      "source": "decide_1761800010000",
+      "target": "send_interactive_1761800011000",
+      "label": "fault"
+    },
+    {
+      "source": "send_interactive_1761800011000",
+      "target": "wait_for_response_1761800012000",
+      "label": "next"
+    },
+    {
+      "source": "wait_for_response_1761800012000",
+      "target": "send_interactive_1761800013000",
+      "label": "next"
+    },
+    {
+      "source": "send_interactive_1761800013000",
+      "target": "wait_for_response_1761800014000",
+      "label": "next"
+    },
+    {
+      "source": "wait_for_response_1761800014000",
+      "target": "send_text_1761800015000",
+      "label": "next"
+    },
+    {
+      "source": "send_text_1761800015000",
+      "target": "wait_for_response_1761800016000",
+      "label": "next"
+    },
+    {
+      "source": "decide_1761800010000",
+      "target": "send_interactive_1761800017000",
+      "label": "maintenance"
+    },
+    {
+      "source": "send_interactive_1761800017000",
+      "target": "wait_for_response_1761800018000",
+      "label": "next"
+    },
+    {
+      "source": "wait_for_response_1761800018000",
+      "target": "send_text_1761800019000",
+      "label": "next"
+    },
+    {
+      "source": "send_text_1761800019000",
+      "target": "wait_for_response_1761800020000",
+      "label": "next"
+    },
+    {
+      "source": "decide_1761800010000",
+      "target": "send_text_1761800021000",
+      "label": "quotation"
+    },
+    {
+      "source": "send_text_1761800021000",
+      "target": "wait_for_response_1761800022000",
+      "label": "next"
+    },
+    {
+      "source": "wait_for_response_1761800016000",
+      "target": "function_1761800023000",
+      "label": "next"
+    },
+    {
+      "source": "wait_for_response_1761800020000",
+      "target": "function_1761800023000",
+      "label": "next"
+    },
+    {
+      "source": "wait_for_response_1761800022000",
+      "target": "function_1761800023000",
+      "label": "next"
+    },
+    {
+      "source": "function_1761800023000",
+      "target": "send_text_1761800024000",
+      "label": "next"
+    },
+    {
+      "source": "send_text_1761800024000",
+      "target": "send_text_1761800025000",
+      "label": "next"
+    },
+    {
+      "source": "send_text_1761800025000",
+      "target": "emit_event_1761800026000",
+      "label": "next"
+    },
+    {
+      "source": "emit_event_1761800026000",
+      "target": "handoff_1761800027000",
+      "label": "next"
+    }
+  ]
+}
