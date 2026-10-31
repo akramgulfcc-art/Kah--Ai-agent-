@@ -18,10 +18,12 @@ const env = { KAH_TEAM_WHATSAPP: '+966511111111', KAH_SALES_WHATSAPP: '+96652222
 
 // Menu routing
 const listReply = { interactive: { list_reply: { id: 'fault', title: 'Report a door fault' } } };
-assert.equal((await call(route, { menu_choice: listReply }, ['request', 'team'])).next_edge, 'request');
+assert.equal((await call(route, { menu_choice: listReply }, ['request', 'question', 'team'])).next_edge, 'request');
 assert.equal((await call(route, { menu_choice: listReply }, ['fault', 'maintenance', 'quotation'])).next_edge, 'fault');
-assert.equal((await call(route, { menu_choice: 'team' }, ['request', 'team'])).next_edge, 'team');
-assert.equal((await call(route, { menu_choice: 'hello' }, ['request', 'team'])).next_edge, 'team');
+assert.equal((await call(route, { menu_choice: 'team' }, ['request', 'question', 'team'])).next_edge, 'team');
+assert.equal((await call(route, { menu_choice: 'hello' }, ['request', 'question', 'team'])).next_edge, 'question');
+assert.equal((await call(route, { menu_choice: 'Do you have warranty?' }, ['request', 'question', 'team'])).next_edge, 'question');
+assert.equal((await call(route, { menu_choice: { list_reply: { id: 'question' } } }, ['request', 'question', 'team'])).next_edge, 'question');
 assert.equal((await call(route, { menu_choice: 'الباب معطل' }, ['fault', 'maintenance', 'quotation'])).next_edge, 'fault');
 assert.equal((await call(route, { menu_choice: 'need AMC visit' }, ['fault', 'maintenance', 'quotation'])).next_edge, 'maintenance');
 assert.equal((await call(route, { menu_choice: 'price for new project' }, ['fault', 'maintenance', 'quotation'])).next_edge, 'quotation');

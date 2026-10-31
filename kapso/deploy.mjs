@@ -1,7 +1,7 @@
 // One-step setup of the KAH Door Service WhatsApp auto-reply on Kapso.
 //
 // Needs: KAPSO_API_KEY, KAPSO_API_BASE_URL (for example https://api.kapso.ai)
-// Usage: node kapso/deploy.mjs --phone-number-id <meta-phone-number-id>
+// Usage: node kapso/deploy.mjs --phone-number-id <meta-phone-number-id> [--model-id <kapso-model-id>]
 //
 // The workflow is created as a draft. Activate it in Kapso after a test.
 import { execFileSync } from 'child_process';
@@ -72,9 +72,22 @@ run('project-event-definitions.js', [
 ]);
 console.log('✓ Event service.request_created registered');
 
+// AI model for the question assistant: --model-id <id>, or the first Claude model Kapso offers.
+const modelIdx = process.argv.indexOf('--model-id');
+let modelId = modelIdx > -1 ? process.argv[modelIdx + 1] : '';
+if (!modelId) {
+  const models = run('list-provider-models.js', []).data.provider_models;
+  const list = Array.isArray(models) ? models : (models && models.data) || [];
+  const pick = list.find((m) => /claude/i.test(JSON.stringify(m))) || list[0];
+  modelId = findId(pick);
+  if (!modelId) throw new Error('No AI model found in Kapso. Pass --model-id <id>.');
+}
+console.log(`✓ AI model selected (${modelId})`);
+
 const definition = readFileSync(join(here, 'workflows/kah-door-service/definition.json'), 'utf8')
   .replaceAll('KAH_ROUTE_MENU_FUNCTION_ID', routeId)
-  .replaceAll('KAH_CREATE_TICKET_FUNCTION_ID', ticketId);
+  .replaceAll('KAH_CREATE_TICKET_FUNCTION_ID', ticketId)
+  .replaceAll('KAH_AGENT_MODEL_ID', modelId);
 const defFile = join(mkdtempSync(join(tmpdir(), 'kah-')), 'definition.json');
 writeFileSync(defFile, definition);
 

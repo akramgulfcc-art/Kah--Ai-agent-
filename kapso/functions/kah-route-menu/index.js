@@ -22,7 +22,7 @@ async function handler(request, env) {
   // Map menu IDs and free-text replies (English and Arabic) to a request type.
   function toRequestType(raw) {
     const text = raw.toLowerCase().trim();
-    if (['fault', 'maintenance', 'quotation', 'team'].includes(text)) return text;
+    if (['fault', 'maintenance', 'quotation', 'question', 'team'].includes(text)) return text;
     if (/fault|broken|stuck|not working|repair|emergency|عطل|خراب|معطل|طوارئ|اصلاح|إصلاح/.test(text)) return 'fault';
     if (/maint|amc|service|visit|contract|صيانة|عقد|زيارة/.test(text)) return 'maintenance';
     if (/quot|price|project|new door|offer|عرض|سعر|مشروع|جديد/.test(text)) return 'quotation';
@@ -35,16 +35,18 @@ async function handler(request, env) {
   let nextEdge;
   if (availableEdges.includes(requestType)) {
     nextEdge = requestType;
-  } else if (requestType && requestType !== 'team' && availableEdges.includes('request')) {
+  } else if (['fault', 'maintenance', 'quotation'].includes(requestType) && availableEdges.includes('request')) {
     nextEdge = 'request';
+  } else if (availableEdges.includes('question')) {
+    // Free-text question or unclear reply: the AI assistant answers it.
+    nextEdge = 'question';
   } else if (availableEdges.includes('team')) {
-    // Unclear reply on the first menu: let a person take over.
     nextEdge = 'team';
   } else {
     nextEdge = availableEdges[0] || 'next';
   }
 
-  return new Response(JSON.stringify({ next_edge: nextEdge, vars: { request_type: requestType || 'team' } }), {
+  return new Response(JSON.stringify({ next_edge: nextEdge, vars: { request_type: requestType || 'question' } }), {
     headers: { 'Content-Type': 'application/json' }
   });
 }

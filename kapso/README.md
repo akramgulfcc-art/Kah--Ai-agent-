@@ -14,6 +14,7 @@ Welcome message + menu
  ├─ Report a door fault ──┐
  ├─ Book maintenance / AMC├─► Name & company ─► Site location ─┐
  ├─ New door quotation ───┘                                    │
+ ├─ Ask a question ─► AI assistant answers from the KAH guide  │
  └─ Talk to our team ─► Team member replies                    │
                                                                ▼
    Fault:       door type ─► door condition ─► problem + photo
@@ -39,10 +40,28 @@ You can change the response promises at the top of
 Customers can also type instead of using the menu. For example, "الباب معطل"
 or "door stuck" goes to the fault path, and "صيانة" or "AMC" goes to maintenance.
 
+## AI assistant for customer questions
+
+When a customer chooses "Ask a question", or types any free message, the AI
+assistant answers from the **KAH Customer Service Guide**
+(`knowledge/kah-service-guide.md`). The guide covers services, GEZE products, AMC,
+warranty, working hours, safe checks the customer can do, and common questions.
+
+- It replies in Arabic or English, matching the customer.
+- It never invents prices, delivery dates or warranty terms.
+- For faults, visits or quotations, it collects the details and hands the chat to the team with a summary.
+- It hands over to a person straight away for complaints or when the customer asks.
+
+**To update the answers:** edit the guide, then run
+`node kapso/workflows/kah-door-service/build-definition.mjs` and upload again.
+Fill in every **[CONFIRM]** item before go-live.
+
 ## Files
 
 | File | Purpose |
 |---|---|
+| `knowledge/kah-service-guide.md` | All answers the AI assistant uses |
+| `workflows/kah-door-service/build-definition.mjs` | Builds the workflow from the steps and the guide |
 | `workflows/kah-door-service/definition.json` | The conversation steps and messages |
 | `functions/kah-route-menu/index.js` | Reads the customer's choice (English or Arabic) |
 | `functions/kah-create-service-ticket/index.js` | Ticket number, priority, customer confirmation, team alert |
