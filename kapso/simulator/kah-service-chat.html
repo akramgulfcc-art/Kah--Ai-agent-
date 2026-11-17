@@ -1,0 +1,468 @@
+<title>KAH Service Chat</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;600&family=Archivo:wght@600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: phone-style chat on the left, "what the team receives" panel on the right; stacks on phones. */
+:root {
+  --bg: #eef1f4;
+  --surface: #ffffff;
+  --ink: #17212b;
+  --muted: #5b6875;
+  --line: #d6dde4;
+  --accent: #0f5c8c;        /* KAH steel blue */
+  --accent-ink: #ffffff;
+  --wall: #e3e8ec;          /* chat wallpaper */
+  --bubble-in: #ffffff;
+  --bubble-out: #d7ebf7;
+  --amber: #b86e00;
+  --high: #b3261e;
+  --ok: #1d7a46;
+  --display: "Archivo", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f151b; --surface: #17202a; --ink: #e6edf3; --muted: #9aa8b5; --line: #2a3644;
+  --accent: #5aa9dc; --accent-ink: #08131c; --wall: #111a22; --bubble-in: #1d2935; --bubble-out: #173a52;
+  --amber: #f0a73a; --high: #ff8a80; --ok: #6fd39b; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f151b; --surface: #17202a; --ink: #e6edf3; --muted: #9aa8b5; --line: #2a3644;
+  --accent: #5aa9dc; --accent-ink: #08131c; --wall: #111a22; --bubble-in: #1d2935; --bubble-out: #173a52;
+  --amber: #f0a73a; --high: #ff8a80; --ok: #6fd39b; color-scheme: dark }
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px;
+}
+.wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 20px; grid-template-columns: minmax(0, 430px) minmax(0, 1fr); align-items: start; }
+@media (max-width: 820px) { .wrap { grid-template-columns: minmax(0, 1fr); } }
+
+header.top { max-width: 1080px; margin: 0 auto 16px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; }
+header.top h1 { font-family: var(--display); font-size: 1.5rem; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+header.top p { margin: 0; color: var(--muted); max-width: 60ch; }
+
+/* ---- phone ---- */
+.phone { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; overflow: hidden; display: flex; flex-direction: column; height: min(760px, calc(100vh - 120px)); min-height: 520px; position: relative; box-shadow: 0 10px 30px rgba(15, 40, 60, .12); }
+.bar { background: var(--accent); color: var(--accent-ink); padding: 12px 14px; display: flex; align-items: center; gap: 12px; }
+.avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--accent-ink); color: var(--accent); display: grid; place-items: center; font-family: var(--display); font-weight: 700; font-size: .85rem; flex: none; }
+.bar .who { min-width: 0; }
+.bar .name { font-weight: 600; }
+.bar .status { font-size: .8rem; opacity: .85; }
+.bar button { margin-left: auto; background: transparent; color: inherit; border: 1px solid currentColor; border-radius: 999px; padding: 5px 12px; font: inherit; font-size: .8rem; cursor: pointer; opacity: .9; }
+.chat { flex: 1; overflow-y: auto; background: var(--wall); padding: 14px 12px; display: flex; flex-direction: column; gap: 8px; }
+.day { align-self: center; font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); background: var(--surface); padding: 3px 10px; border-radius: 8px; }
+.msg { max-width: 86%; padding: 8px 10px 6px; border-radius: 10px; white-space: pre-wrap; overflow-wrap: anywhere; position: relative; }
+.msg.in { align-self: flex-start; background: var(--bubble-in); border-top-left-radius: 2px; }
+.msg.out { align-self: flex-end; background: var(--bubble-out); border-top-right-radius: 2px; }
+.msg .t { display: block; text-align: right; font-size: .68rem; color: var(--muted); margin-top: 2px; font-family: var(--mono); }
+.msg b { font-weight: 600; }
+.chips { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.chip { background: var(--surface); color: var(--accent); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font: inherit; font-weight: 600; cursor: pointer; text-align: center; }
+.chip:disabled { opacity: .5; cursor: default; }
+.chip:focus-visible, .send:focus-visible, .tool:focus-visible, .row:focus-visible, .bar button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.typing { align-self: flex-start; background: var(--bubble-in); border-radius: 10px; padding: 10px 14px; display: flex; gap: 4px; }
+.typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: blink 1s infinite; }
+.typing i:nth-child(2) { animation-delay: .15s; } .typing i:nth-child(3) { animation-delay: .3s; }
+@keyframes blink { 0%, 80%, 100% { opacity: .25 } 40% { opacity: 1 } }
+@media (prefers-reduced-motion: reduce) { .typing i { animation: none; opacity: .6; } }
+
+.compose { display: flex; gap: 6px; padding: 8px; background: var(--surface); border-top: 1px solid var(--line); align-items: center; }
+.tool { background: transparent; border: 1px solid var(--line); color: var(--muted); border-radius: 50%; width: 38px; height: 38px; flex: none; cursor: pointer; font-size: 1rem; display: grid; place-items: center; }
+.compose input { flex: 1; min-width: 0; border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 999px; padding: 9px 14px; font: inherit; }
+.send { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 50%; width: 40px; height: 40px; flex: none; cursor: pointer; font-size: 1rem; }
+
+/* list sheet */
+.sheet { position: absolute; inset: auto 0 0 0; background: var(--surface); border-top: 1px solid var(--line); border-radius: 16px 16px 0 0; padding: 14px 14px 18px; box-shadow: 0 -10px 30px rgba(0,0,0,.18); max-height: 75%; overflow-y: auto; }
+.sheet h3 { margin: 0 0 4px; font-size: .95rem; }
+.sheet .sec { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 8px 0 4px; }
+.row { display: block; width: 100%; text-align: left; background: transparent; border: 0; border-bottom: 1px solid var(--line); padding: 10px 4px; font: inherit; color: var(--ink); cursor: pointer; }
+.row small { display: block; color: var(--muted); }
+.sheet .close { margin-top: 10px; width: 100%; }
+
+/* ---- side panel ---- */
+.side { display: grid; gap: 16px; min-width: 0; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; min-width: 0; }
+.panel h2 { font-family: var(--display); font-size: 1.05rem; margin: 0 0 4px; }
+.panel .sub { color: var(--muted); margin: 0 0 12px; font-size: .9rem; }
+.eyebrow { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.alert { font-family: var(--mono); font-size: .82rem; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+.empty { color: var(--muted); font-size: .9rem; }
+.tickets { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.tickets th, .tickets td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tickets th { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+.tickets td.id { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: .75rem; font-weight: 600; border: 1px solid currentColor; }
+.pill.High { color: var(--high); } .pill.Normal { color: var(--ok); }
+.tablewrap { overflow-x: auto; }
+.tips { margin: 0; padding-left: 18px; color: var(--muted); font-size: .9rem; display: grid; gap: 4px; }
+.tips code { font-family: var(--mono); color: var(--ink); }
+.note { font-size: .8rem; color: var(--amber); }
+</style>
+
+<header class="top">
+  <h1>KAH Service Chat</h1>
+  <p>Simulation of the KAH WhatsApp customer service line. Chat as a customer; the panel shows what your team receives.</p>
+</header>
+
+<div class="wrap">
+  <section class="phone" aria-label="Customer chat">
+    <div class="bar">
+      <div class="avatar" aria-hidden="true">KAH</div>
+      <div class="who">
+        <div class="name">KAH Middle East Co.</div>
+        <div class="status">Customer service · usually replies instantly</div>
+      </div>
+      <button id="restart" type="button">Restart</button>
+    </div>
+    <div class="chat" id="chat" aria-live="polite"></div>
+    <form class="compose" id="compose" autocomplete="off">
+      <button class="tool" id="loc" type="button" title="Share location" aria-label="Share location">📍</button>
+      <button class="tool" id="photo" type="button" title="Send photo" aria-label="Send photo">📷</button>
+      <input id="text" type="text" placeholder="Type a message (English or عربي)" aria-label="Message">
+      <button class="send" type="submit" aria-label="Send">➤</button>
+    </form>
+    <div class="sheet" id="sheet" hidden></div>
+  </section>
+
+  <aside class="side">
+    <div class="panel">
+      <div class="eyebrow">Dispatcher / Sales WhatsApp</div>
+      <h2>Team alert</h2>
+      <p class="sub">Sent automatically to your team when a request is complete.</p>
+      <div id="alert" class="empty">No request yet. Report a fault in the chat to see the alert.</div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">Today</div>
+      <h2>Tickets created</h2>
+      <div class="tablewrap">
+        <table class="tickets">
+          <thead><tr><th>Ticket</th><th>Type</th><th>Priority</th><th>Customer</th></tr></thead>
+          <tbody id="log"><tr><td colspan="4" class="empty">No tickets yet.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Try these</h2>
+      <ul class="tips">
+        <li>Choose <code>Report a door fault</code> and pick <code>Stuck closed</code> for a High priority ticket.</li>
+        <li>Choose <code>Ask a question</code>, then ask <code>what are your working hours?</code> or <code>do you have warranty?</code></li>
+        <li>Type in Arabic: <code>الباب لا يفتح</code> or <code>كم سعر عقد الصيانة؟</code></li>
+        <li>Type <code>menu</code> at any time to start again.</li>
+      </ul>
+      <p class="note">Items marked "to be confirmed" are waiting for KAH management to confirm.</p>
+    </div>
+  </aside>
+</div>
+
+<script>
+(function () {
+  var chat = document.getElementById('chat');
+  var sheet = document.getElementById('sheet');
+  var input = document.getElementById('text');
+  var log = document.getElementById('log');
+  var alertBox = document.getElementById('alert');
+  var state, ticketsMade = 0;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var MENU = [
+    { id: 'fault', title: 'Report a door fault', d: 'Door not working, stuck, noisy or damaged' },
+    { id: 'maintenance', title: 'Book maintenance / AMC', d: 'Preventive service or annual maintenance contract' },
+    { id: 'quotation', title: 'New door quotation', d: 'New project, replacement or GEZE products' },
+    { id: 'question', title: 'Ask a question', d: 'Services, GEZE products, AMC, warranty and more' },
+    { id: 'team', title: 'Talk to our team', d: 'Speak directly with a KAH team member' }
+  ];
+  var DOORS = [
+    { id: 'sliding', title: 'Sliding door' }, { id: 'swing', title: 'Swing door' },
+    { id: 'revolving', title: 'Revolving door' }, { id: 'folding', title: 'Folding door' },
+    { id: 'hermetic', title: 'Hermetic / hospital door' }, { id: 'other', title: 'Other / not sure' }
+  ];
+  var TBC = ' (to be confirmed by KAH)';
+  var TBC_AR = ' (سيتم التأكيد من KAH)';
+
+  // Answers from the KAH Customer Service Guide.
+  var FAQ = [
+    { k: /hour|timing|open|close time|دوام|ساعات|مواعيد|وقت العمل/,
+      en: 'Our working hours are Saturday to Thursday, 8:00 AM to 5:00 PM' + TBC + '.',
+      ar: 'ساعات العمل من السبت إلى الخميس، من 8 صباحاً حتى 5 مساءً' + TBC_AR + '.' },
+    { k: /emergenc|weekend|night|friday|طوارئ|ليل|الجمعة|عطلة/,
+      en: 'Emergency breakdown service outside working hours is available for AMC customers' + TBC + '.',
+      ar: 'خدمة الطوارئ خارج ساعات العمل متاحة لعملاء عقود الصيانة' + TBC_AR + '.' },
+    { k: /how fast|response|how long.*(come|technician)|متى يصل|سرعة|كم وقت.*فني/,
+      en: 'For a door stuck open or stuck closed, our technician comes within 4 hours. For other faults, within 24 hours, during working hours.',
+      ar: 'إذا كان الباب عالقاً مفتوحاً أو مغلقاً، يصل الفني خلال 4 ساعات. وللأعطال الأخرى خلال 24 ساعة، ضمن ساعات العمل.' },
+    { k: /amc.*(price|cost|how much)|(price|cost|how much).*amc|سعر عقد|تكلفة عقد|كم.*عقد/,
+      en: 'The AMC price depends on the number and type of doors, the location and the visit frequency. Share your details and our sales team will send you a written offer.',
+      ar: 'سعر عقد الصيانة يعتمد على عدد الأبواب ونوعها والموقع وعدد الزيارات. أرسل لنا التفاصيل وسيرسل لك فريق المبيعات عرضاً مكتوباً.' },
+    { k: /amc|contract|maintenance plan|preventive|عقد|صيانة دورية|وقائية/,
+      en: 'An AMC is a yearly contract with scheduled maintenance visits, usually 4 visits per year. It reduces breakdowns, keeps the doors safe, extends their life and gives you priority service. Each visit includes sensor, motor, belt and track checks, adjustment and a written report.',
+      ar: 'عقد الصيانة السنوي يشمل زيارات صيانة مجدولة، عادة 4 زيارات في السنة. يقلل الأعطال ويحافظ على سلامة الأبواب ويطيل عمرها ويمنحك أولوية في الخدمة. كل زيارة تشمل فحص الحساسات والموتور والسير والمسار والضبط وتقرير مكتوب.' },
+    { k: /price|cost|how much|quotation|quote|سعر|تكلفة|كم|عرض/,
+      en: 'The price of a new automatic door depends on the door type, size, glass, finish and site conditions. Please share your project details or drawings and we will send you a quotation.',
+      ar: 'سعر الباب الأوتوماتيكي الجديد يعتمد على نوع الباب والمقاس والزجاج والتشطيب وظروف الموقع. أرسل لنا تفاصيل المشروع أو المخططات وسنرسل لك عرض السعر.' },
+    { k: /warrant|guarantee|ضمان|كفالة/,
+      en: 'New installations come with a warranty on GEZE drives and workmanship, for example 12 months' + TBC + '. Repairs carry a warranty on the replaced parts' + TBC + '.',
+      ar: 'التركيبات الجديدة عليها ضمان على محركات GEZE والتركيب، مثلاً 12 شهراً' + TBC_AR + '. والإصلاحات عليها ضمان على القطع المستبدلة' + TBC_AR + '.' },
+    { k: /brand|other than geze|dorma|record|besam|ماركة|ماركات|نوع آخر/,
+      en: 'Our technicians service most automatic door brands' + TBC + '. Original spare parts are available for GEZE.',
+      ar: 'فنيونا يقومون بصيانة معظم ماركات الأبواب الأوتوماتيكية' + TBC_AR + '. وقطع الغيار الأصلية متوفرة لمنتجات GEZE.' },
+    { k: /install|delivery|lead time|تركيب|توريد|تسليم/,
+      en: 'Installation usually takes 1 to 2 days per door on site once the frame and glass are ready. Delivery time for GEZE products depends on stock and model' + TBC + '.',
+      ar: 'التركيب يحتاج عادة يوماً إلى يومين لكل باب في الموقع بعد تجهيز الإطار والزجاج. ومدة توريد منتجات GEZE تعتمد على المخزون والموديل' + TBC_AR + '.' },
+    { k: /survey|site visit|measure|معاينة|زيارة موقع|قياس/,
+      en: 'Yes, our team can visit your site to measure and recommend the right solution' + TBC + '.',
+      ar: 'نعم، يمكن لفريقنا زيارة موقعك للقياس واقتراح الحل المناسب' + TBC_AR + '.' },
+    { k: /data ?sheet|submittal|drawing|consultant|كتالوج|مخطط|استشاري|داتا/,
+      en: 'Yes. Our sales team can send GEZE data sheets, technical submittals and drawings for consultants and contractors.',
+      ar: 'نعم، يمكن لفريق المبيعات إرسال كتالوجات GEZE والمستندات الفنية والمخططات للاستشاريين والمقاولين.' },
+    { k: /geze|product|slimdrive|ecdrive|powerturn|revolving|منتج|منتجات|جيزه|جيزة/,
+      en: 'We offer the full GEZE range: Slimdrive SL NT and ECdrive T2 sliding doors, Powerdrive for large doors, Slimdrive SC curved doors, Powerturn and Slimdrive EMD swing operators, TSA 325 NT revolving doors, hermetic hospital doors and escape route solutions.',
+      ar: 'نوفر مجموعة GEZE الكاملة: أبواب منزلقة Slimdrive SL NT و ECdrive T2، و Powerdrive للأبواب الكبيرة، وأبواب منحنية Slimdrive SC، ومشغلات أبواب مفصلية Powerturn و Slimdrive EMD، وأبواب دوارة TSA 325 NT، وأبواب المستشفيات المحكمة، وحلول مخارج الطوارئ.' },
+    { k: /pay|payment|bank|cheque|دفع|سداد|تحويل/,
+      en: 'Our team will confirm the available payment methods for you' + TBC + '.',
+      ar: 'سيؤكد لك فريقنا طرق الدفع المتاحة' + TBC_AR + '.' },
+    { k: /where|address|office|location of|وين|أين|عنوان|مكتب|موقعكم/,
+      en: 'Our team will share the office address with you' + TBC + '.',
+      ar: 'سيرسل لك فريقنا عنوان المكتب' + TBC_AR + '.' },
+    { k: /not open|won.?t open|not working|stuck|beep|noise|لا يفتح|ما يفتح|لا يعمل|عالق|معطل|صوت/,
+      en: 'Sorry for the trouble. Please try these safe checks:\n1. Program switch: set it to "Automatic" (not "Off" or "Night / Locked").\n2. Power: check the building power and the door breaker.\n3. Sensors: remove anything in front of them and clean the sensor glass.\n4. Floor track: remove stones or dirt.\nPlease do not open the operator cover. If it still does not work, report a fault and a technician will come.',
+      ar: 'نأسف للإزعاج. جرّب هذه الفحوصات الآمنة:\n1. مفتاح التشغيل: اجعله على "Automatic" وليس "Off" أو "Night".\n2. الكهرباء: تأكد من وجود الكهرباء وقاطع الباب.\n3. الحساسات: أبعد أي شيء أمامها ونظّف زجاج الحساس.\n4. مسار الأرضية: أزل الحصى أو الأوساخ.\nيرجى عدم فتح غطاء المحرك. إذا استمرت المشكلة، أبلغ عن عطل وسيحضر الفني.',
+      fault: true }
+  ];
+
+  var isAr = function (s) { return /[؀-ۿ]/.test(s); };
+  var now = function () { var d = new Date(); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+  var scroll = function () { chat.scrollTop = chat.scrollHeight; };
+
+  function bubble(side, text, chips) {
+    var el = document.createElement('div');
+    el.className = 'msg ' + side;
+    el.dir = 'auto';
+    var body = document.createElement('span');
+    body.innerHTML = esc(text).replace(/\*([^*]+)\*/g, '<b>$1</b>');
+    el.appendChild(body);
+    if (chips && chips.length) {
+      var box = document.createElement('div');
+      box.className = 'chips';
+      chips.forEach(function (c) {
+        var b = document.createElement('button');
+        b.type = 'button'; b.className = 'chip'; b.textContent = c.label;
+        b.addEventListener('click', function () {
+          if (b.disabled) return;
+          box.querySelectorAll('button').forEach(function (x) { x.disabled = true; });
+          c.onClick();
+        });
+        box.appendChild(b);
+      });
+      el.appendChild(box);
+    }
+    var t = document.createElement('span'); t.className = 't'; t.textContent = now() + (side === 'out' ? ' ✓✓' : '');
+    el.appendChild(t);
+    chat.appendChild(el); scroll();
+    return el;
+  }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  var queue = Promise.resolve();
+  function bot(text, chips) {
+    queue = queue.then(function () {
+      return new Promise(function (res) {
+        var ty = document.createElement('div'); ty.className = 'typing'; ty.innerHTML = '<i></i><i></i><i></i>';
+        chat.appendChild(ty); scroll();
+        setTimeout(function () { ty.remove(); bubble('in', text, chips); res(); }, reduce ? 50 : 650);
+      });
+    });
+    return queue;
+  }
+  function me(text) { bubble('out', text); }
+
+  function openList(title, rows, onPick) {
+    sheet.innerHTML = '';
+    var h = document.createElement('h3'); h.textContent = title; sheet.appendChild(h);
+    var sec = document.createElement('div'); sec.className = 'sec'; sec.textContent = 'Select one'; sheet.appendChild(sec);
+    rows.forEach(function (r) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'row';
+      b.innerHTML = esc(r.title) + (r.d ? '<small>' + esc(r.d) + '</small>' : '');
+      b.addEventListener('click', function () { sheet.hidden = true; onPick(r); });
+      sheet.appendChild(b);
+    });
+    var c = document.createElement('button'); c.type = 'button'; c.className = 'chip close'; c.textContent = 'Close';
+    c.addEventListener('click', function () { sheet.hidden = true; });
+    sheet.appendChild(c);
+    sheet.hidden = false;
+    var first = sheet.querySelector('.row'); if (first) first.focus();
+  }
+  function listChip(label, title, rows, onPick) {
+    return [{ label: '☰ ' + label, onClick: function () { openList(title, rows, onPick); reEnable(); } }];
+  }
+  // Keep list buttons usable until the customer picks a row.
+  function reEnable() { setTimeout(function () { var last = chat.querySelectorAll('.msg.in'); var m = last[last.length - 1]; if (m) m.querySelectorAll('.chip').forEach(function (b) { b.disabled = false; }); }, 0); }
+
+  // ---------- flow ----------
+  function start(greet) {
+    state = { step: 'menu', data: {} };
+    if (greet) me(greet);
+    bot('Welcome to KAH Middle East Co. 👋\nAutomatic door solutions in partnership with GEZE, Germany.\n\nHow can we help you today? Please choose an option from the menu.',
+      listChip('Choose service', 'KAH Services', MENU, function (r) { me(r.title); route(r.id); }));
+  }
+
+  function typeOf(text) {
+    var t = text.toLowerCase();
+    if (/fault|broken|stuck|not working|repair|emergency|عطل|خراب|معطل|طوارئ|اصلاح|إصلاح|لا يفتح|ما يفتح/.test(t)) return 'fault';
+    if (/maint|amc|service visit|visit|contract|صيانة|عقد|زيارة/.test(t)) return 'maintenance';
+    if (/quot|price|project|new door|offer|عرض|سعر|مشروع|جديد/.test(t)) return 'quotation';
+    if (/team|talk to|human|agent|person|موظف|تواصل|اتصال/.test(t)) return 'team';
+    return 'question';
+  }
+
+  function route(type) {
+    state.data.type = type;
+    if (type === 'team') {
+      state.step = 'handoff';
+      bot('Thank you. A KAH team member will reply to you here shortly during working hours.\nFor an urgent door breakdown, please choose "Report a door fault" from the menu so we can dispatch a technician faster.');
+      bot('🔁 Chat passed to the KAH team. Type "menu" to start again.');
+      return;
+    }
+    if (type === 'question') {
+      state.step = 'qa';
+      bot('Sure, I am happy to help. What would you like to know about our services, GEZE products, maintenance or warranty?');
+      return;
+    }
+    state.step = 'name';
+    bot('Please send your full name and the company or building name.');
+  }
+
+  function askLocation() {
+    state.step = 'location';
+    bot('Thank you. Please share the site location 📍\nYou can send your WhatsApp location, or type the city, area and building address.',
+      [{ label: '📍 Share my location', onClick: shareLocation }]);
+  }
+
+  function afterLocation() {
+    var t = state.data.type;
+    if (t === 'fault') {
+      state.step = 'door';
+      bot('What type of door has the problem?', listChip('Choose door type', 'Door type', DOORS, function (r) { me(r.title); state.data.door = r.title; askCondition(); }));
+    } else if (t === 'maintenance') {
+      state.step = 'amc';
+      bot('Do you have an Annual Maintenance Contract (AMC) with KAH?', [
+        { label: 'Yes, we have AMC', onClick: function () { amc('Yes, we have AMC'); } },
+        { label: 'No AMC', onClick: function () { amc('No AMC'); } },
+        { label: 'Not sure', onClick: function () { amc('Not sure'); } }
+      ]);
+    } else {
+      state.step = 'project';
+      bot('Please share your project details:\n• Project name\n• Number of doors\n• Door type (sliding, swing, revolving, etc.)\n• Expected installation date\n\nYou can also send drawings, BOQ or photos.');
+    }
+  }
+  function askCondition() {
+    state.step = 'condition';
+    bot('What is the door condition now?', [
+      { label: 'Stuck open', onClick: function () { condition('Stuck open'); } },
+      { label: 'Stuck closed', onClick: function () { condition('Stuck closed'); } },
+      { label: 'Working with issue', onClick: function () { condition('Working with issue'); } }
+    ]);
+  }
+  function condition(c) { me(c); state.data.condition = c; state.step = 'problem';
+    bot('Please describe the problem in a few words.\nIf possible, also send a photo or short video of the door and the operator unit. This helps our technician bring the right spare parts.'); }
+  function amc(a) { me(a); state.data.amc = a; state.step = 'maint';
+    bot('How many automatic doors are at this site, and what is your preferred visit date and time?'); }
+
+  function shareLocation() {
+    if (state.step !== 'location') { bot('Thank you for the location. 👍'); return; }
+    me('📍 Location: Al Olaya St, Riyadh (sample)');
+    state.data.location = 'Al Olaya St, Riyadh (https://maps.google.com/?q=24.6907,46.6850)';
+    afterLocation();
+  }
+
+  function finish() {
+    var d = state.data, type = d.type;
+    var priority = 'Normal', rt = 'within 24 hours';
+    if (type === 'fault' && /stuck/i.test(d.condition || '')) { priority = 'High'; rt = 'within 4 hours'; }
+    else if (type === 'maintenance') rt = 'within 1 working day to confirm the visit date';
+    else if (type === 'quotation') rt = 'within 1 working day';
+    var prefix = { fault: 'SR', maintenance: 'PM', quotation: 'QT' }[type];
+    var dt = new Date();
+    var date = String(dt.getFullYear()).slice(2) + String(dt.getMonth() + 1).padStart(2, '0') + String(dt.getDate()).padStart(2, '0');
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', code = '';
+    for (var i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    var id = 'KAH-' + prefix + '-' + date + '-' + code;
+    var label = { fault: 'Door fault report', maintenance: 'Maintenance / AMC request', quotation: 'Quotation request' }[type];
+
+    bot('Thank you, ' + d.name + '. ✅\nYour ' + label.toLowerCase() + ' has been received.\n\nTicket number: *' + id + '*\n' +
+      (type === 'fault' ? 'Priority: ' + priority + '\n' : '') +
+      'Our team will contact you ' + rt + '.\n\nPlease keep this ticket number for any follow-up.\nKAH Middle East Co. – in partnership with GEZE');
+    bot('🔁 Chat passed to the KAH team. Type "menu" to start a new request.');
+
+    var lines = [];
+    if (type === 'fault') lines.push('Door type: ' + (d.door || '-'), 'Condition: ' + (d.condition || '-'), 'Problem: ' + (d.problem || '-'));
+    else if (type === 'maintenance') lines.push('AMC: ' + (d.amc || '-'), 'Details: ' + (d.maint || '-'));
+    else lines.push('Project: ' + (d.project || '-'));
+    var to = type === 'quotation' ? 'Sent to: Sales WhatsApp' : 'Sent to: Service dispatcher WhatsApp';
+    alertBox.className = 'alert';
+    alertBox.textContent = '🔔 NEW ' + label.toUpperCase() + '\nTicket: ' + id + '\nPriority: ' + priority + '\nCustomer: ' + d.name +
+      '\nPhone: +966 5X XXX XXXX (sample)\nLocation: ' + (d.location || '-') + '\n' + lines.join('\n') + '\n\n' + to;
+
+    if (!ticketsMade) log.innerHTML = '';
+    ticketsMade++;
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td class="id">' + esc(id) + '</td><td>' + esc(label.replace(' report', '').replace(' request', '')) +
+      '</td><td><span class="pill ' + priority + '">' + priority + '</span></td><td dir="auto">' + esc(d.name) + '</td>';
+    log.prepend(tr);
+    state.step = 'handoff';
+  }
+
+  function answer(text) {
+    var ar = isAr(text), t = text.toLowerCase();
+    var hit = FAQ.find(function (f) { return f.k.test(t); });
+    if (hit) {
+      var chips = hit.fault ? [{ label: 'Report a door fault', onClick: function () { me('Report a door fault'); route('fault'); } }] : null;
+      bot((ar ? hit.ar : hit.en) + '\n\n' + (ar ? 'هل تحتاج أي مساعدة أخرى؟' : 'Is there anything else I can help you with?'), chips);
+    } else {
+      bot(ar ? 'شكراً لسؤالك. سأحوّل سؤالك إلى فريق KAH للتأكيد، وسيتواصلون معك قريباً. هل تحتاج أي مساعدة أخرى؟'
+             : 'Thank you for your question. I will pass it to the KAH team to confirm, and they will reply to you shortly. Is there anything else I can help you with?');
+    }
+  }
+
+  function onText(text) {
+    var t = text.trim(); if (!t) return;
+    me(t);
+    if (/^(menu|start|hi|hello|القائمة|ابدأ|مرحبا|السلام عليكم)$/i.test(t) && state.step !== 'name') { start(); return; }
+    switch (state.step) {
+      case 'menu':
+        var type = typeOf(t);
+        if (type === 'question') { state.data.type = type; state.step = 'qa'; answer(t); } else route(type);
+        break;
+      case 'name': state.data.name = t; askLocation(); break;
+      case 'location': state.data.location = t; afterLocation(); break;
+      case 'door': state.data.door = t; askCondition(); break;
+      case 'condition': state.data.condition = t; state.step = 'problem'; condition0(); break;
+      case 'problem': state.data.problem = t; finish(); break;
+      case 'amc': state.data.amc = t; state.step = 'maint'; bot('How many automatic doors are at this site, and what is your preferred visit date and time?'); break;
+      case 'maint': state.data.maint = t; finish(); break;
+      case 'project': state.data.project = t; finish(); break;
+      case 'qa': answer(t); break;
+      default: bot('Thank you. A KAH team member will reply to you here shortly. Type "menu" to start a new request.');
+    }
+  }
+  function condition0() { bot('Please describe the problem in a few words.\nIf possible, also send a photo or short video of the door and the operator unit.'); }
+
+  document.getElementById('compose').addEventListener('submit', function (e) { e.preventDefault(); var v = input.value; input.value = ''; onText(v); });
+  document.getElementById('loc').addEventListener('click', shareLocation);
+  document.getElementById('photo').addEventListener('click', function () {
+    me('📷 Photo: door_operator.jpg');
+    if (state.step === 'problem') { state.data.problem = (state.data.problem ? state.data.problem + ' ' : '') + '[photo received]'; finish(); }
+    else bot('Thank you, we received your photo. 👍');
+  });
+  document.getElementById('restart').addEventListener('click', function () {
+    chat.innerHTML = '<div class="day">Today</div>'; sheet.hidden = true; queue = Promise.resolve(); start('Hi');
+  });
+
+  chat.innerHTML = '<div class="day">Today</div>';
+  start('Hi');
+})();
+</script>
